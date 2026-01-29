@@ -14,6 +14,14 @@ const LOADING_MESSAGES = [
   "Finalizando sua obra-prima..."
 ];
 
+// Imagens de exemplo para o Modo Demo (URLs de alta qualidade que representam os estilos)
+const DEMO_IMAGES: Record<MascotStyle, string> = {
+  [MascotStyle.MINI_REALISTA]: "https://images.unsplash.com/photo-1618331835717-801e976710b2?q=80&w=1000&auto=format&fit=crop",
+  [MascotStyle.MAGIA_3D]: "https://images.unsplash.com/photo-1599508704512-2f19efd1e35f?q=80&w=1000&auto=format&fit=crop",
+  [MascotStyle.CARTOON_POP]: "https://images.unsplash.com/photo-1635322966219-b75ed372eb3c?q=80&w=1000&auto=format&fit=crop",
+  [MascotStyle.PINTURA_DOCE]: "https://images.unsplash.com/photo-1541364983171-a8ba01e95cfc?q=80&w=1000&auto=format&fit=crop"
+};
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [emailInput, setEmailInput] = useState('');
@@ -21,6 +29,7 @@ const App: React.FC = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const [isDemoMode, setIsDemoMode] = useState(() => localStorage.getItem('yu_demo_mode') === 'true');
 
   const [state, setState] = useState<MascotState>({
     image: null,
@@ -57,6 +66,12 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const toggleDemoMode = () => {
+    const newVal = !isDemoMode;
+    setIsDemoMode(newVal);
+    localStorage.setItem('yu_demo_mode', String(newVal));
+  };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const users = JSON.parse(localStorage.getItem('yu_users') || '[]');
@@ -81,6 +96,19 @@ const App: React.FC = () => {
   const handleGenerate = async () => {
     if (!state.image || !state.style) return;
     setState(prev => ({ ...prev, isLoading: true, error: null }));
+    
+    // Simulação do Modo Demo
+    if (isDemoMode) {
+      setTimeout(() => {
+        setState(prev => ({ 
+          ...prev, 
+          generatedMascot: DEMO_IMAGES[state.style as MascotStyle], 
+          isLoading: false 
+        }));
+      }, 4000); // 4 segundos para simular a criação
+      return;
+    }
+
     try {
       const result = await generateMascotImage(state.image, state.style, state.clothingDetails, state.partyTheme);
       setState(prev => ({ ...prev, generatedMascot: result, isLoading: false }));
@@ -149,17 +177,31 @@ const App: React.FC = () => {
             <button onClick={() => setShowHelpModal(false)} className="absolute top-8 right-8 w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 font-bold hover:bg-slate-100 transition-colors">✕</button>
             <h2 className="text-3xl font-black text-slate-800 mb-8">Painel Admin ⚙️</h2>
             <div className="space-y-6">
+              
+              <div className="p-6 bg-pink-50 rounded-3xl border border-pink-100 space-y-3">
+                <div className="flex justify-between items-center">
+                   <p className="text-pink-700 font-black text-sm uppercase tracking-tight">Modo de Demonstração</p>
+                   <button 
+                    onClick={toggleDemoMode}
+                    className={`w-14 h-8 rounded-full transition-all relative ${isDemoMode ? 'bg-pink-500' : 'bg-slate-300'}`}
+                   >
+                     <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${isDemoMode ? 'right-1' : 'left-1 shadow-sm'}`}></div>
+                   </button>
+                </div>
+                <p className="text-[10px] text-pink-400 font-bold uppercase leading-tight">Quando ativado, o site gera artes de exemplo sem usar sua chave de API ou gastar créditos.</p>
+              </div>
+
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status da Conexão</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status da Conexão Real</p>
                 <div className="bg-emerald-50 p-5 rounded-3xl border border-emerald-100 flex items-center gap-3">
                   <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-emerald-700 font-black text-sm uppercase tracking-tight">Gemini API Online</span>
+                  <span className="text-emerald-700 font-black text-sm uppercase tracking-tight">Gemini API Configurada</span>
                 </div>
               </div>
               
               <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                <p className="text-slate-600 text-sm font-bold leading-relaxed">Seus clientes não veem esta tela. Use os links abaixo para gerenciar o faturamento da sua chave do Google.</p>
-                <a href="https://aistudio.google.com/app/billing" target="_blank" className="block w-full py-5 bg-slate-800 text-white rounded-[1.5rem] text-center font-black uppercase text-xs tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-slate-200">Painel de Faturamento Google 💳</a>
+                <p className="text-slate-600 text-sm font-bold leading-relaxed">Gerencie o faturamento oficial da sua chave do Google clicando abaixo:</p>
+                <a href="https://aistudio.google.com/app/billing" target="_blank" className="block w-full py-5 bg-slate-800 text-white rounded-[1.5rem] text-center font-black uppercase text-xs tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-slate-200">Portal de Pagamentos Google 💳</a>
               </div>
             </div>
           </div>
@@ -172,6 +214,12 @@ const App: React.FC = () => {
           <h2 className="text-5xl md:text-6xl font-black text-slate-800 tracking-tighter">Crie seu Mascote ✨</h2>
           <p className="text-slate-400 font-bold text-lg">Mascotes lindos em um clique</p>
         </div>
+
+        {isDemoMode && (
+          <div className="max-w-md mx-auto bg-amber-100 text-amber-800 px-6 py-3 rounded-full text-center text-[10px] font-black uppercase tracking-widest animate-pulse border border-amber-200">
+            🚀 MODO DEMONSTRAÇÃO ATIVO (Simulando Criação)
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-12 gap-10 items-start">
           {/* Lado Esquerdo: Workshop */}
@@ -251,9 +299,6 @@ const App: React.FC = () => {
             {state.error && (
               <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100">
                 <p className="text-amber-700 text-xs font-bold leading-relaxed text-center">{state.error}</p>
-                {isAdmin && (state.error.includes('COTA') || state.error.includes('429')) && (
-                  <a href="https://aistudio.google.com/app/billing" target="_blank" className="mt-4 block w-full py-3 bg-slate-800 text-white text-center rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-colors">Resolver Faturamento 💳</a>
-                )}
               </div>
             )}
           </div>
@@ -292,8 +337,11 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="relative group max-w-sm mx-auto">
-                   <img src={state.generatedMascot} className="w-full rounded-[3.5rem] shadow-2xl border-4 border-white/5 transition-transform group-hover:scale-[1.02] duration-500" />
+                   <img src={state.generatedMascot} className="w-full aspect-square object-cover rounded-[3.5rem] shadow-2xl border-4 border-white/5 transition-transform group-hover:scale-[1.02] duration-500" />
                    <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-pink-500 rounded-full flex items-center justify-center text-3xl shadow-xl shadow-pink-900/40 animate-bounce">🎨</div>
+                   {isDemoMode && (
+                     <div className="absolute top-4 left-4 bg-amber-500 text-white px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">Exemplo Demo</div>
+                   )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-4">
