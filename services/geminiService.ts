@@ -6,29 +6,29 @@ const STYLE_PROMPTS: Record<MascotStyle, string> = {
   [MascotStyle.MINI_REALISTA]: `STYLE REFERENCE: High-end professional realistic child mascot. 
     FACE: 100% realistic photographic face, preserving every detail, expression, and genetic feature of the child in the photo. 
     BODY: Slightly stylized "doll-like" proportions but with realistic skin textures and professional studio lighting. 
-    FINISH: Soft shadows, high-end toy aesthetic, extremely polished.`,
+    FINISH: Soft shadows, high-end toy aesthetic, extremely polished, cinematic 8k resolution.`,
     
   [MascotStyle.MAGIA_3D]: `STYLE REFERENCE: Modern 3D animation movie style (Pixar/Disney inspired). 
     FACE: Stylized but highly recognizable version of the child. Large, expressive, sparkly eyes with detailed irises. 
     BODY: Full 3D volumetric rendering, subsurface scattering on skin for a warm glow. 
-    FINISH: Vibrant saturated colors, cinematic lighting, smooth 3D surfaces.`,
+    FINISH: Vibrant saturated colors, cinematic lighting, smooth 3D surfaces, masterpiece quality.`,
     
   [MascotStyle.CARTOON_POP]: `STYLE REFERENCE: Clean 2D vector art / Modern Sticker style. 
     FACE: Simplified but characteristic features of the child, bold clean outlines. 
     BODY: Proportional 2D cartoon body, flat colors with simple cell-shading. 
-    FINISH: High contrast, thick professional lines, graphic and bold visual.`,
+    FINISH: High contrast, thick professional lines, graphic and bold visual, commercial illustration style.`,
     
   [MascotStyle.PINTURA_DOCE]: `STYLE REFERENCE: Soft digital painting illustration. 
     FACE: Artistic representation with soft brushwork, preserving the child's likeness in a delicate way. 
-    BODY: Painterly textures, no harsh outlines. 
-    FINISH: Warm, cozy atmosphere, pastel color palette, soft focus and artistic lighting.`
+    BODY: Painterly textures, no harsh outlines, magical atmosphere. 
+    FINISH: Warm, cozy atmosphere, pastel color palette, soft focus and artistic lighting, watercolor and gouache textures.`
 };
 
 export async function generateMascotImage(imageBase64: string, style: MascotStyle, clothingDetails: string, partyTheme: string): Promise<string> {
   const apiKey = process.env.API_KEY;
   
   if (!apiKey || apiKey === 'undefined') {
-    throw new Error("API_KEY não configurada. Se você estiver na Vercel, adicione-a nas Environment Variables.");
+    throw new Error("Por favor, selecione uma chave de API para continuar.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -44,29 +44,20 @@ export async function generateMascotImage(imageBase64: string, style: MascotStyl
 
   const promptText = `
     TASK: Generate a professional full-body child mascot based on the attached photo.
-    
-    ESTILO VISUAL OBRIGATÓRIO: ${styleSpecificInstructions}
-    
-    FIDELIDADE GENÉTICA: O rosto do mascote DEVE ser a versão exata da criança na foto. Mantenha formato de olhos, nariz, boca e expressão original.
-    
-    DETALHES DA ROUPA: ${clothingDetails || 'Roupas infantis luxuosas e detalhadas combinando com o estilo.'}
-    
-    TEMA DA FESTA (INTEGRAÇÃO): ${partyTheme ? `Tema: "${partyTheme}". Adicione elementos, cores ou pequenos acessórios que remetam a este tema de forma elegante.` : 'Sem tema específico.'}
-    
-    REGRAS CRÍTICAS DE SAÍDA:
-    1. CORPO INTEIRO (Full Body): Gere da cabeça aos pés, pose carismática de pé.
-    2. FUNDO BRANCO: Fundo totalmente limpo e branco (White background).
-    3. SEM TEXTO: Proibido nomes, logos, marcas d'água ou assinaturas.
-    4. QUALIDADE: Resolução 8k, iluminação profissional, visual de obra-prima.
-    5. NÃO É CARICATURA: O resultado deve ser um mascote profissional, nunca uma caricatura distorcida ou engraçada.
-
-    Apenas retorne a imagem do mascote finalizado.
+    FIDELIDADE GENÉTICA: O rosto do mascote DEVE ser a versão exata da criança na foto.
+    ESTILO: ${styleSpecificInstructions}
+    DETALHES: ${clothingDetails || 'Roupas infantis luxuosas.'}
+    TEMA: ${partyTheme ? `Tema: ${partyTheme}` : ''}
+    REGRAS: Fundo branco, corpo inteiro, sem texto.
   `;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: { parts: [imagePart, { text: promptText }] },
+      config: {
+        imageConfig: { aspectRatio: "1:1" }
+      }
     });
 
     for (const part of response.candidates?.[0].content.parts || []) {
@@ -75,12 +66,12 @@ export async function generateMascotImage(imageBase64: string, style: MascotStyl
       }
     }
     
-    throw new Error("A IA não retornou uma imagem. Tente novamente ou verifique se a foto está clara.");
+    throw new Error("A IA não retornou imagem. Tente uma foto mais nítida.");
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
-    if (error.message?.includes('403')) {
-      throw new Error("Erro de permissão da API. Verifique sua chave e faturamento no Google AI Studio.");
+    console.error("Gemini Error:", error);
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      throw new Error("COTA ZERO: O Google exige que você ative o plano 'Pay-as-you-go' (é grátis até certo limite) no Google AI Studio para gerar imagens.");
     }
-    throw new Error(error.message || "Erro ao gerar a arte. Tente uma foto diferente.");
+    throw new Error(error.message || "Erro ao gerar arte.");
   }
 }
