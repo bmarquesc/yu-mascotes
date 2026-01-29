@@ -1,0 +1,7 @@
+{
+  "name": "Yu Mascotes",
+  "description": "Transforme fotos de crianças em mascotes incríveis. Selecione um estilo e gere artes exclusivas com IA.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
