@@ -1,3 +1,4 @@
+
 export enum MascotStyle {
   MINI_REALISTA = "Mini Realista",
   MAGIA_3D = "Magia 3D",
@@ -11,6 +12,7 @@ export interface User {
   email: string;
   password: string;
   status: UserStatus;
+  createdAt: number; // Timestamp da criação da conta
 }
 
 export interface MascotState {
