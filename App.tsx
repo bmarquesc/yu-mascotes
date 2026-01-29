@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MascotStyle, MascotState, User, UserStatus } from './types';
 import { generateMascotImage } from './services/geminiService';
@@ -132,13 +131,18 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-[3rem] p-10 relative animate-in zoom-in duration-300">
             <button onClick={() => setShowHelpModal(false)} className="absolute top-6 right-6 text-slate-400 font-bold">✕</button>
-            <h2 className="text-2xl font-black text-slate-800 mb-6">🎁 Ativar Uso Gratuito</h2>
-            <div className="space-y-4 text-slate-600 font-medium">
-              <p>1. Vá no <a href="https://aistudio.google.com/" target="_blank" className="text-pink-500 font-bold underline">Google AI Studio</a>.</p>
-              <p>2. Clique em <b>Settings (Engrenagem)</b> no canto inferior esquerdo.</p>
-              <p>3. Clique na aba <b>Plan</b>.</p>
-              <p>4. Clique em <b>"Upgrade to Pay-as-you-go"</b>. Mesmo com esse nome, você terá uma cota gratuita de centenas de imagens por dia.</p>
-              <p>5. Volte aqui e use sua chave normalmente!</p>
+            <h2 className="text-2xl font-black text-slate-800 mb-6">🎁 Como Ativar o Plano</h2>
+            <div className="space-y-4 text-slate-600 font-medium text-sm text-left">
+              <p>O Google exige que você ative o plano <b>Pay-as-you-go</b> para gerar imagens. É o plano que permite usar o Gemini de graça até um certo limite.</p>
+              
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+                <p><b>Passo 1:</b> Acesse a página de planos aqui: <a href="https://aistudio.google.com/app/billing" target="_blank" className="text-pink-500 font-black underline">Página de Faturamento (Link Direto)</a></p>
+                <p><b>Passo 2:</b> Clique no botão azul <b>"Upgrade to Pay-as-you-go"</b>.</p>
+                <p><b>Passo 3:</b> Siga os passos na tela do Google para cadastrar seu cartão (necessário para validação).</p>
+              </div>
+
+              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Mais Informações:</p>
+              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="text-blue-500 text-xs underline block">Documentação de Preços do Google</a>
             </div>
             <button onClick={() => setShowHelpModal(false)} className="w-full mt-8 py-4 bg-slate-800 text-white rounded-2xl font-black">ENTENDI!</button>
           </div>
@@ -165,9 +169,12 @@ const App: React.FC = () => {
             </button>
 
             {state.error && (
-              <div className="p-6 bg-red-50 rounded-2xl border border-red-100">
-                <p className="text-red-500 text-xs font-bold mb-4">{state.error}</p>
-                <button onClick={handleSelectApiKey} className="text-xs bg-slate-800 text-white px-4 py-2 rounded-lg font-bold">CONFIGURAR CHAVE 🔑</button>
+              <div className="p-6 bg-red-50 rounded-2xl border border-red-100 space-y-4">
+                <p className="text-red-500 text-xs font-bold leading-relaxed">{state.error}</p>
+                <div className="flex flex-col gap-2">
+                  <a href="https://aistudio.google.com/app/billing" target="_blank" className="w-full py-3 bg-blue-600 text-white rounded-xl text-center text-xs font-black uppercase tracking-widest">Ativar Plano no Google 💳</a>
+                  <button onClick={handleSelectApiKey} className="w-full py-3 bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest">Configurar Minha Chave 🔑</button>
+                </div>
               </div>
             )}
           </div>
